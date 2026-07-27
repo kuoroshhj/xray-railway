@@ -1,0 +1,11 @@
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "xray run -c /etc/xray/config.json"
+healthcheckPath = "/"
+restartPolicyType = "always"
+
+[[service.ports]]
+port = 8080
+protocol = "http"
