@@ -1,0 +1,28 @@
+name: tunnel
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to fetch'
+        required: true
+        type: string
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch
+        run: |
+          curl -sS --max-time 30 -o /tmp/response.txt -w "CODE:%{http_code}" "${{ inputs.url }}"
+      - name: Save
+        run: |
+          DATE=$(date +%s)
+          mkdir -p tunnel/
+          cp /tmp/response.txt tunnel/${DATE}.txt
+          echo "${{ inputs.url }}" > tunnel/${DATE}.url
+          git config user.email "tunnel-bot@example.com"
+          git config user.name "tunnel-bot"
+          git add tunnel/
+          git diff --cached --quiet || git commit -m "tunnel ${DATE}"
+          git push
