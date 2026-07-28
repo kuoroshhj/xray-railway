@@ -10,12 +10,19 @@ on:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
       - name: Fetch
         run: |
-          curl -sS --max-time 30 -o /tmp/response.txt -w "CODE:%{http_code}" "${{ inputs.url }}"
+          curl -sS --max-time 30 -L -o /tmp/response.txt -w "STATUS:%{http_code}" "${{ inputs.url }}"
+          echo "" >> /tmp/response.txt
       - name: Save
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           DATE=$(date +%s)
           mkdir -p tunnel/
@@ -24,5 +31,4 @@ jobs:
           git config user.email "tunnel-bot@example.com"
           git config user.name "tunnel-bot"
           git add tunnel/
-          git diff --cached --quiet || git commit -m "tunnel ${DATE}"
-          git push
+          git diff --cached --quiet && echo "no new data" || (git commit -m "tunnel ${DATE}" && git push)
